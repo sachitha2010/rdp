@@ -21,7 +21,20 @@ jobs:
         $Password = ConvertTo-SecureString "MyPassword123" -AsPlainText -Force
         Set-LocalUser -Name "runneradmin" -Password $Password
 
-    - name: Start Cloudflare Tunnel & Show URL
+    - name: Start Cloudflare Tunnel
       run: |
-        echo "Check the logs below for the '.trycloudflare.com' URL"
-        ./cloudflared.exe tunnel --url tcp://localhost:3389
+        # මේකෙන් Tunnel එක background එකේ run කරනවා URL එක පෙන්නන ගමන්
+        Start-Process powershell -ArgumentList "-NoExit -Command ./cloudflared.exe tunnel --url tcp://localhost:3389"
+        Write-Host "Waiting for tunnel to initialize..."
+        Start-Sleep -Seconds 10
+
+    - name: Keep Alive & Show URL
+      run: |
+        Write-Host "Look for the '.trycloudflare.com' URL in the logs above or below."
+        # පැය 6ක් යනකම් VPS එක දුවන්න මේ loop එක උදව් වෙනවා
+        $i = 1
+        while($i -lt 360) {
+          Write-Host "VPS is still running... Minute: $i"
+          Start-Sleep -Seconds 60
+          $i++
+        }
