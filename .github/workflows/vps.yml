@@ -21,10 +21,7 @@ jobs:
         $Password = ConvertTo-SecureString "MyPassword123" -AsPlainText -Force
         Set-LocalUser -Name "runneradmin" -Password $Password
 
-    - name: Start Cloudflare Tunnel
+    - name: Start Cloudflare Tunnel & Show URL
       run: |
-        Start-Process powershell -ArgumentList "-NoExit -Command ./cloudflared.exe tunnel --url tcp://localhost:3389"
-
-    - name: Keep Alive Loop
-      run: |
-        while($true) { Start-Sleep -Seconds 3600 }
+        echo "Check the logs below for the '.trycloudflare.com' URL"
+        ./cloudflared.exe tunnel --url tcp://localhost:3389
