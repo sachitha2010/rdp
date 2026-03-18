@@ -16,15 +16,14 @@ jobs:
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
 
-    - name: Create User Account
+    - name: Set Password for runneradmin
       run: |
-        net user runneradmin MyPassword123 /add
-        net localgroup administrators runneradmin /add
+        $Password = ConvertTo-SecureString "MyPassword123" -AsPlainText -Force
+        Set-LocalUser -Name "runneradmin" -Password $Password
 
     - name: Start Cloudflare Tunnel
       run: |
         Start-Process powershell -ArgumentList "-NoExit -Command ./cloudflared.exe tunnel --url tcp://localhost:3389"
-        echo "Tunnel started! Check the logs below for the URL."
 
     - name: Keep Alive Loop
       run: |
