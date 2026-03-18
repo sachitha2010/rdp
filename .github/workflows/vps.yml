@@ -1,0 +1,31 @@
+name: Windows-RDP-VPS
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Download Cloudflared
+      run: |
+        curl -L --output cloudflared.exe https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+
+    - name: Enable Remote Desktop
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+    - name: Create User Account
+      run: |
+        net user runneradmin MyPassword123 /add
+        net localgroup administrators runneradmin /add
+
+    - name: Start Cloudflare Tunnel
+      run: |
+        Start-Process powershell -ArgumentList "-NoExit -Command ./cloudflared.exe tunnel --url tcp://localhost:3389"
+        echo "Tunnel started! Check the logs below for the URL."
+
+    - name: Keep Alive Loop
+      run: |
+        while($true) { Start-Sleep -Seconds 3600 }
